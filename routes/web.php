@@ -9,6 +9,22 @@ Route::get('/', function () {
 });
 
 
+// Route::get('/start-oauth', [AuthController::class, 'startOauth'])->name('start-oauth');
+// Route::post('/callback', [AuthController::class, 'oauthCallback'])->name('callback');
+// Route::get('/get-token', [AuthController::class, 'getToken'])->name('get-token');
+// Route::get('/get-write-key', [AuthController::class, 'getWriteKey']);
 
-Route::get('/auth/redirect', [AuthController::class, 'customRedirectToProvider'])->name('auth.redirect');
-Route::post('/auth/callback', [AuthController::class, 'customHandleProviderCallback'])->name('auth.callback');
+
+// Route::post('/get-keys', [AuthController::class, 'getKeys']);
+// Route::get('/oauth/authorize', [AuthController::class, 'redirectToProvider']);
+// Route::get('/auth/callback', [AuthController::class, 'handleProviderCallback']);
+// Route::get('/get-token', [AuthController::class, 'getToken']);
+// Route::post('/exchange-token', [AuthController::class, 'exchangeToken']);
+// Route::get('/verify-token', [AuthController::class, 'verifyToken']);
+
+
+Route::post('/start-oauth', [AuthController::class, 'startOauth'])->name('start-oauth');
+Route::get('/auth/login', [AuthController::class, 'showLoginForm'])->name('login');
+Route::post('/auth/callback', [AuthController::class, 'oauthCallback'])->name('callback');
+Route::get('/get-token', [AuthController::class, 'getToken'])->name('get-token');
+Route::get('/get-write-key', [AuthController::class, 'getWriteKey'])->name('get-write-key');
