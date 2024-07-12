@@ -9,7 +9,7 @@
 
 <body>
 	<h1>OAuth Success</h1>
-	<p> {{$readKey}} You have successfully authenticated. Please return to Figma to continue.</p>
+	<p> You have successfully authenticated. Please return to Figma to continue.</p>
 
 	<script>
 		// Send the read key to the parent window
