@@ -15,11 +15,15 @@ class ProjectController extends Controller
             'name' => 'required|string',
             'description' => 'nullable|string',
             'file_id' => 'required|string',
+            'variables' => 'nullable|json',
+            'patterns' => 'nullable|json',
+            'templates' => 'nullable|json',
+            'elements' => 'nullable|json',
+            'parts' => 'nullable|json',
         ]);
-
+        
         try {
-            // Create and save the project
-
+            
             // Attempt to find a project with the given file_id
             $existingProject = Project::where('file_id', $validatedData['file_id'])->first();
             
@@ -28,7 +32,12 @@ class ProjectController extends Controller
             if ($existingProject) {
                 // If a project with the file_id exists, update it
                 $existingProject->name = $validatedData['name'];
-                $existingProject->description = $validatedData['description'];
+                $existingProject->description = $validatedData['description'] ?? '';
+                $existingProject->variables = $validatedData['variables'] ?? [];
+                $existingProject->patterns = $validatedData['patterns'] ?? [];
+                $existingProject->templates = $validatedData['templates'] ?? [];
+                $existingProject->elements = $validatedData['elements'] ?? [];
+                $existingProject->parts = $validatedData['parts'] ?? [];
                 $existingProject->last_imported_date = now();
                 $existingProject->save();
             
@@ -39,8 +48,13 @@ class ProjectController extends Controller
                 $project = new Project();
                 $project->user_id = $user->id;
                 $project->name = $validatedData['name'];
-                $project->description = $validatedData['description'];
+                $project->description = $validatedData['description'] ?? '';
                 $project->file_id = $validatedData['file_id'];
+                $project->variables = $validatedData['variables'] ?? [];
+                $project->patterns = $validatedData['patterns'] ?? [];
+                $project->templates = $validatedData['templates'] ?? [];
+                $project->elements = $validatedData['elements'] ?? [];
+                $project->parts = $validatedData['parts']  ?? [];
                 $project->last_imported_date = now();
                 $project->save();
             
@@ -48,9 +62,6 @@ class ProjectController extends Controller
                 return response()->json(['message' => 'Project created successfully'], 201);
             }
         } catch (\Exception $e) {
-            // Log the error
-            \Log::error('Project creation failed: ' . $e->getMessage());
-
             // Return a generic error response
             return response()->json(['error' => 'Failed to create the project.'], 500);
         }

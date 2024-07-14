@@ -28,3 +28,4 @@ Route::get('/auth/login', [AuthController::class, 'showLoginForm'])->name('login
 Route::post('/auth/callback', [AuthController::class, 'oauthCallback'])->name('callback');
 Route::get('/get-token', [AuthController::class, 'getToken'])->name('get-token');
 Route::get('/get-write-key', [AuthController::class, 'getWriteKey'])->name('get-write-key');
+Route::middleware('auth:sanctum')->get('/session-validate', 'AuthController@sessionValidate');
