@@ -5,11 +5,14 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Project;
 use App\Models\User;
+use App\Models\ProjectApiKey;
+use App\Services\ThemeJson;
 
 class ProjectController extends Controller
 {
     public function store(Request $request)
     {
+
         // Validation
         $validatedData = $request->validate([
             'name' => 'required|string',
@@ -21,30 +24,21 @@ class ProjectController extends Controller
             'elements' => 'nullable|json',
             'parts' => 'nullable|json',
         ]);
-        
+
         try {
-            
-            // Attempt to find a project with the given file_id
-            $existingProject = Project::where('file_id', $validatedData['file_id'])->first();
-            
             $user = $request->user();
-            
-            if ($existingProject) {
+            $project = Project::where('file_id', $validatedData['file_id'])->first();
+
+            if ($project) {
                 // If a project with the file_id exists, update it
-                $existingProject->name = $validatedData['name'];
-                $existingProject->description = $validatedData['description'] ?? '';
-                $existingProject->variables = $validatedData['variables'] ?? [];
-                $existingProject->patterns = $validatedData['patterns'] ?? [];
-                $existingProject->templates = $validatedData['templates'] ?? [];
-                $existingProject->elements = $validatedData['elements'] ?? [];
-                $existingProject->parts = $validatedData['parts'] ?? [];
-                $existingProject->last_imported_date = now();
-                $existingProject->save();
-            
-                // Return a response indicating the project was updated
-                return response()->json(['message' => 'Project updated successfully'], 200);
+                $project->name = $validatedData['name'];
+                $project->description = $validatedData['description'] ?? '';
+                $project->variables = $validatedData['variables'] ?? [];
+                $project->patterns = $validatedData['patterns'] ?? [];
+                // Continue updating other fields...
+                $project->save();
             } else {
-                // If no project exists with the file_id, create a new one
+                // Create a new project
                 $project = new Project();
                 $project->user_id = $user->id;
                 $project->name = $validatedData['name'];
@@ -52,18 +46,38 @@ class ProjectController extends Controller
                 $project->file_id = $validatedData['file_id'];
                 $project->variables = $validatedData['variables'] ?? [];
                 $project->patterns = $validatedData['patterns'] ?? [];
-                $project->templates = $validatedData['templates'] ?? [];
-                $project->elements = $validatedData['elements'] ?? [];
-                $project->parts = $validatedData['parts']  ?? [];
-                $project->last_imported_date = now();
+
+                // Continue setting other fields...
                 $project->save();
-            
-                // Return a response indicating the project was created
-                return response()->json(['message' => 'Project created successfully'], 201);
+
+                // Generate and assign a new API key
+                $projectApiKey = ProjectApiKey::generateForProject($project->id);
+                $projectApiKey->save();
             }
+
+            return response()->json(['message' => 'Project saved successfully']);
         } catch (\Exception $e) {
-            // Return a generic error response
-            return response()->json(['error' => 'Failed to create the project.'], 500);
+            return response()->json(['error' => 'An error occurred while saving the project'], 500);
         }
+    }
+
+    protected function validateApiKey($key)
+    {
+        // Implement your logic to validate the API key
+        // For example, check if the key exists in your database
+    }
+
+    // create a function to get the project by api key
+    public function getThemeJson(Request $request)
+    {
+        $project = $request->attributes->get('project');
+
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $themeJson = new ThemeJson();
+        $themeJson->setThemeData($project); 
+        return response()->json($themeJson->themeData, 200);
     }
 }

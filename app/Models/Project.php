@@ -33,5 +33,11 @@ class Project extends Model
         return $this->belongsTo(User::class);
     }
 
+
+    public function apiKey()
+    {
+        return $this->hasOne(ProjectApiKey::class);
+    }
+
     // Add any additional methods or relationships here
 }

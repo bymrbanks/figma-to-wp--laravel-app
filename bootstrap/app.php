@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware) {
         $middleware->alias([
             'https' => \App\Http\Middleware\HttpsProtocol::class,
+            'validate_api_key' => \App\Http\Middleware\ValidateApiKeyMiddleware::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
