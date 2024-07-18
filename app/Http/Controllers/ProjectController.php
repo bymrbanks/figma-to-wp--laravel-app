@@ -23,6 +23,7 @@ class ProjectController extends Controller
             'templates' => 'nullable|json',
             'elements' => 'nullable|json',
             'parts' => 'nullable|json',
+            'themejson' => 'nullable|json',
         ]);
 
         try {
@@ -35,8 +36,20 @@ class ProjectController extends Controller
                 $project->description = $validatedData['description'] ?? '';
                 $project->variables = $validatedData['variables'] ?? [];
                 $project->patterns = $validatedData['patterns'] ?? [];
+
+                // Update the themejson
+                $themeJson = new ThemeJson($project);
+                $project->themejson = $themeJson->setThemeData($project);
+
                 // Continue updating other fields...
                 $project->save();
+
+                // Generate and assign a new API key
+                $projectApiKey = ProjectApiKey::generateForProject($project->id);
+                if ($projectApiKey) {
+                    $projectApiKey->save();
+                }
+
             } else {
                 // Create a new project
                 $project = new Project();
@@ -46,6 +59,10 @@ class ProjectController extends Controller
                 $project->file_id = $validatedData['file_id'];
                 $project->variables = $validatedData['variables'] ?? [];
                 $project->patterns = $validatedData['patterns'] ?? [];
+
+                // Update the themejson
+                $themeJson = new ThemeJson($project);
+                $project->themejson = $themeJson->setThemeData();
 
                 // Continue setting other fields...
                 $project->save();
@@ -71,13 +88,13 @@ class ProjectController extends Controller
     public function getThemeJson(Request $request)
     {
         $project = $request->attributes->get('project');
-
         if (!$project) {
             return response()->json(['error' => 'Project not found'], 404);
         }
 
-        $themeJson = new ThemeJson();
-        $themeJson->setThemeData($project); 
-        return response()->json($themeJson->themeData, 200);
+        $themeJson = new ThemeJson($project);
+        $data = $themeJson->setThemeData();
+        
+        return response()->json($data, 200);
     }
 }

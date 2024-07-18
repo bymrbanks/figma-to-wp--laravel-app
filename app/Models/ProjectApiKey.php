@@ -21,6 +21,11 @@ class ProjectApiKey extends Model
      */
     public static function generateForProject($projectId)
     {
+        // Check if the project already has an API key
+        if (self::where('project_id', $projectId)->exists()) {
+            return;
+        }
+
         $apiKey = new self();
         $apiKey->project_id = $projectId;
         $apiKey->api_key = Str::random(32); // Generate a 32 character long random string
@@ -28,7 +33,7 @@ class ProjectApiKey extends Model
 
         return $apiKey;
     }
-    
+
     public function project()
     {
         return $this->belongsTo(Project::class);
