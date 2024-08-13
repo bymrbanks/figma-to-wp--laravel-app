@@ -36,6 +36,10 @@ class ProjectController extends Controller
                 $project->description = $validatedData['description'] ?? '';
                 $project->variables = $validatedData['variables'] ?? [];
                 $project->patterns = $validatedData['patterns'] ?? [];
+                $project->templates = $validatedData['templates'] ?? [];
+                $project->elements = $validatedData['elements'] ?? [];
+                $project->parts = $validatedData['parts'] ?? [];
+                
 
                 // Update the themejson
                 $themeJson = new ThemeJson($project);
@@ -94,6 +98,35 @@ class ProjectController extends Controller
 
         $themeJson = new ThemeJson($project);
         $data = $themeJson->setThemeData();
+        
+        return response()->json($data, 200);
+    }
+
+
+    // create a function to get the project by api key
+    public function getPatterns(Request $request)
+    {
+        $project = $request->attributes->get('project');
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $patterns = $project->patterns ?? [];
+        $data = json_decode($patterns);
+        
+        return response()->json($data, 200);
+    }
+
+    // create a function to get the project by api key
+    public function getParts(Request $request)
+    {
+        $project = $request->attributes->get('project');
+        if (!$project) {
+            return response()->json(['error' => 'Project not found'], 404);
+        }
+
+        $parts = $project->parts ?? [];
+        $data = json_decode($parts);
         
         return response()->json($data, 200);
     }

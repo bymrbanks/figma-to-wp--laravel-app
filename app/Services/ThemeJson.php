@@ -26,6 +26,7 @@ class ThemeJson
         $this->themeData['version'] = 2;
         $this->themeData['settings'] = [];
         $this->themeData['settings']['appearanceTools'] = true;
+        $this->themeData['settings']['useRootPaddingAwareAlignments'] = true;
 
         // Ensure the settings and layout properties exist
         $settings = &$this->themeData['settings'];
@@ -42,16 +43,17 @@ class ThemeJson
                 $settings['layout']['wideSize'] = $variable->value . "px";
             }
         }
-        // $settings['layout']['wideSize'] = $data['layout']['wide-size']['value'] . "px";
 
         // Color
-        $settings['color']['palette'] = $this->createColorPalette();
+        $settings['color']['palette'] = $this->getColorSettings();
         $settings['color']['defaultPalette'] = false;
         $settings['color']['defaultGradients'] = false;
         $settings['color']['defaultDuotone'] = false;
 
         // Spacing
-        $settings['spacing'] = $this->createSpacingConfig();
+        $settings['spacing'] = $this->getSpacingSettings();
+
+
 
         // Elements
         // $this->themeData['styles']['elements'] = $this->get_elements_styles();
@@ -59,7 +61,108 @@ class ThemeJson
         // Blocks
         // $this->themeData['styles']['blocks'] = $this->get_block_styles();
 
+        // Typography
+        $this->themeData['styles']['typography'] = $this->getTypographySettings();
         return $this->themeData;
+    }
+
+    public function getSchema()
+    {
+        // Returns the schema URL
+    }
+
+    public function getVersion()
+    {
+        // Returns the version number
+
+    }
+
+    public function getPatterns()
+    {
+        // Returns an array of pattern slugs
+    }
+
+    public function getLayoutSettings()
+    {
+        // Returns the layout settings
+    }
+
+    public function getTypographySettings()
+    {
+
+        $typography = array_filter($this->variables, function ($variable) {
+            return strpos($variable->name, 'font/size') !== false;
+        });
+
+
+        $typographySettings = array(
+            'fontSizes' => array(),
+            'fontFamilies' => array(),
+            'fontWeights' => array(),
+            'fontStyles' => array(),
+        );
+
+        foreach ($typography as $typographySetting) {
+            $name_parts = explode('/', $typographySetting->name);
+            $type = Str::slug($name_parts[0]);
+            $subtype = isset($name_parts[1]) ? Str::slug($name_parts[1]) : null;
+            $slug = isset($name_parts[1]) ? Str::slug($name_parts[2]) : null;
+            $value = $typographySetting->value;
+
+            if ($type == 'font' && $subtype == 'size') {
+                $typographySettings['fontSizes'][] = array(
+                    'name' => $slug,
+                    'slug' => $slug,
+                    'size' => $value,
+                );
+            }
+
+            if ($type == 'font' && $subtype == 'family') {
+                $typographySettings['fontFamilies'][] = array(
+                    'name' => $slug,
+                    'slug' => $slug,
+                    'family' => $value,
+                );
+            }
+
+            if ($type == 'font' && $subtype == 'style') {
+                $typographySettings['fontStyles'][] = array(
+                    'name' => $slug,
+                    'slug' => $slug,
+                    'style' => $value,
+                );
+            }
+
+            if ($type == 'font' && $subtype == 'weight') {
+                $typographySettings['fontWeights'][] = array(
+                    'name' => $slug,
+                    'slug' => $slug,
+                    'weight' => $value,
+                );
+            }
+        }
+
+        return  $typographySettings;
+    }
+
+    public function getUseRootPaddingAwareAlignments()
+    {
+        // Returns the useRootPaddingAwareAlignments setting
+    }
+
+    public function getStyles()
+    {
+        // Returns the styles settings
+    }
+
+    public function getTemplateParts()
+    {
+        // Returns an array of template parts
+    }
+
+    public function getCustomTemplates()
+    {
+        // Returns an array of custom templates
     }
 
 
@@ -133,9 +236,9 @@ class ThemeJson
      *
      * @return array The color palette array.
      */
-    private function createColorPalette()
+    private function getColorSettings()
     {
-        $colors = array_filter($this->variables, function($variable) {
+        $colors = array_filter($this->variables, function ($variable) {
             return strpos($variable->name, 'palette/') !== false;
         });
 
@@ -160,7 +263,7 @@ class ThemeJson
     }
 
 
-    function createSpacingConfig()
+    function getSpacingSettings()
     {
         $spacingConfig = array(
             'spacingScale' => array('steps' => 0),
@@ -168,7 +271,7 @@ class ThemeJson
             'units' => array("%", "px", "em", "rem", "vh", "vw")
         );
 
-        $spacingSizes = array_filter($this->variables, function($variable) {
+        $spacingSizes = array_filter($this->variables, function ($variable) {
             return strpos($variable->name, 'spacing/') !== false;
         });
 
