@@ -261,7 +261,7 @@ class ThemeJson
 
         return $palette;
     }
-
+ 
 
     function getSpacingSettings()
     {

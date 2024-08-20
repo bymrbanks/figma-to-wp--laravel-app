@@ -18,6 +18,8 @@ class Project extends Model
         'elements', // JSON column
         'parts', // JSON column
         'user_id', // Assuming you want to make this fillable as well
+        'cover',
+        'images'
     ];
 
     protected $casts = [
@@ -26,6 +28,7 @@ class Project extends Model
         'templates' => 'array',
         'elements' => 'array',
         'parts' => 'array',
+        'images' => 'array'
     ];
 
     public function user()
