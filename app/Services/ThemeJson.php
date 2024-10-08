@@ -14,8 +14,16 @@ class ThemeJson
     {
         // Initialize the theme data
         $this->themeData = [];
-        $this->variables = json_decode($project->variables);
+        $this->variables = $this->ensureArray(json_decode($project->variables, true));
         $this->update_variable_map();
+    }
+ 
+    private function ensureArray($data)
+    {
+        if (is_string($data)) {
+            $data = json_decode($data, true);
+        }
+        return is_array($data) ? $data : [];
     }
 
     public function setThemeData()
@@ -34,13 +42,13 @@ class ThemeJson
         $settings['color'] = $settings['color'] ?? [];
         $settings['spacing'] = $settings['spacing'] ?? [];
 
-        // // Layout
+        // Layout
         foreach ($variables as $variable) {
-            if ($variable->name == 'layout/Content Size') {
-                $settings['layout']['contentSize'] = $variable->value . "px";
+            if (isset($variable['name']) && $variable['name'] == 'layout/Content Size') {
+                $settings['layout']['contentSize'] = $variable['value'] . "px";
             }
-            if ($variable->name == 'layout/Wide Size') {
-                $settings['layout']['wideSize'] = $variable->value . "px";
+            if (isset($variable['name']) && $variable['name'] == 'layout/Wide Size') {
+                $settings['layout']['wideSize'] = $variable['value'] . "px";
             }
         }
 
@@ -52,14 +60,6 @@ class ThemeJson
 
         // Spacing
         $settings['spacing'] = $this->getSpacingSettings();
-
-
-
-        // Elements
-        // $this->themeData['styles']['elements'] = $this->get_elements_styles();
-
-        // Blocks
-        // $this->themeData['styles']['blocks'] = $this->get_block_styles();
 
         // Typography
         $this->themeData['styles']['typography'] = $this->getTypographySettings();
@@ -91,7 +91,7 @@ class ThemeJson
     {
 
         $typography = array_filter($this->variables, function ($variable) {
-            return strpos($variable->name, 'font/size') !== false;
+            return strpos($variable['name'], 'font/size') !== false;
         });
 
 
@@ -103,11 +103,11 @@ class ThemeJson
         );
 
         foreach ($typography as $typographySetting) {
-            $name_parts = explode('/', $typographySetting->name);
+            $name_parts = explode('/', $typographySetting['name']);
             $type = Str::slug($name_parts[0]);
             $subtype = isset($name_parts[1]) ? Str::slug($name_parts[1]) : null;
             $slug = isset($name_parts[1]) ? Str::slug($name_parts[2]) : null;
-            $value = $typographySetting->value;
+            $value = $typographySetting['value'];
 
             if ($type == 'font' && $subtype == 'size') {
                 $typographySettings['fontSizes'][] = array(
@@ -172,31 +172,25 @@ class ThemeJson
     public function update_variable_map()
     {
         $this->variable_map = [];
-        // Get the variables from the options
-
         $variables = $this->variables;
 
-        // Iterate over each variable
         foreach ($variables as $variable) {
-            // Get the variable name and value
-            $object  = [];
+            $object = [];
 
-            $id = $variable->id;
-            $value = $variable->name;
+            $id = $variable['id'];
+            $value = $variable['name'];
 
             $name_parts = explode('/', $value);
             $type = Str::slug($name_parts[0]);
             $subtype = isset($name_parts[1]) ? Str::slug($name_parts[1]) : null;
             $slug = isset($name_parts[1]) ? Str::slug($name_parts[1]) : null;
-            $value = $variable->value;
-
+            $value = $variable['value'];
 
             if ($type == 'spacing') {
-                $object['size'] =  $value;
+                $object['size'] = $value;
             }
 
             if ($type == 'palette') {
-
                 $object['color'] = $value;
             }
 
@@ -204,7 +198,6 @@ class ThemeJson
                 $object['size'] = $value;
             }
 
-            // Add conditions for font size and font family
             if ($type == 'font' && $subtype == 'size') {
                 $object['size'] = $value;
             }
@@ -224,11 +217,8 @@ class ThemeJson
                 $object['slug'] = $slug;
             }
 
-
-            // Add the variable to the map
             $this->variable_map[$id] = $object;
         }
-        $this->variable_map;
     }
 
     /**
@@ -239,17 +229,20 @@ class ThemeJson
     private function getColorSettings()
     {
         $colors = array_filter($this->variables, function ($variable) {
-            return strpos($variable->name, 'palette/') !== false;
+            return isset($variable['name']) && strpos($variable['name'], 'palette/') !== false;
         });
 
         $palette = [];
         foreach ($colors as $colorName => $colorDetails) {
-            $value = $colorDetails->value;
+            if (!isset($colorDetails['value']) || !is_array($colorDetails['value'])) {
+                continue;
+            }
+            $value = $colorDetails['value'];
 
-            $r = intval($value->r * 255);
-            $g = intval($value->g * 255);
-            $b = intval($value->b * 255);
-            $a = $value->a;
+            $r = intval(($value['r'] ?? 0) * 255);
+            $g = intval(($value['g'] ?? 0) * 255);
+            $b = intval(($value['b'] ?? 0) * 255);
+            $a = $value['a'] ?? 1;
 
             $color = sprintf("#%02x%02x%02x%02x", $r, $g, $b, $a * 255);
             $palette[] = array(
@@ -272,15 +265,17 @@ class ThemeJson
         );
 
         $spacingSizes = array_filter($this->variables, function ($variable) {
-            return strpos($variable->name, 'spacing/') !== false;
+            return isset($variable['name']) && strpos($variable['name'], 'spacing/') !== false;
         });
 
         foreach ($spacingSizes as $spacingSize) {
-
+            if (!isset($spacingSize['slug']) || !isset($spacingSize['value'])) {
+                continue;
+            }
             $spacingConfig['spacingSizes'][] = array(
-                'name' => $spacingSize->slug,
-                'slug' => $spacingSize->slug,
-                'size' => $this->pxToMinFunction($spacingSize->value),
+                'name' => $spacingSize['slug'],
+                'slug' => $spacingSize['slug'],
+                'size' => $this->pxToMinFunction($spacingSize['value']),
             );
         }
 

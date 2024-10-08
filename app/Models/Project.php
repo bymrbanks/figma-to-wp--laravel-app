@@ -19,23 +19,24 @@ class Project extends Model
         'parts', // JSON column
         'user_id', // Assuming you want to make this fillable as well
         'cover',
-        'images'
+        'images',
+        'pages', // JSON column
     ];
-
+ 
     protected $casts = [
         'variables' => 'array',
         'patterns' => 'array',
         'templates' => 'array',
         'elements' => 'array',
         'parts' => 'array',
-        'images' => 'array'
+        'images' => 'array',
+        'pages' => 'array',
     ];
 
     public function user()
     {
         return $this->belongsTo(User::class);
     }
-
 
     public function apiKey()
     {
